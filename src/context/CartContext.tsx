@@ -4,7 +4,7 @@ import type { CartItem, Product, CoffeeCustomization, CoffeeBase } from '../type
 
 interface CartContextType {
     items: CartItem[];
-    addToCart: (product: Product, quantity: number, customization?: CoffeeCustomization, coffeeBase?: CoffeeBase, customerName?: string) => void;
+    addToCart: (product: Product, quantity: number, customization?: CoffeeCustomization, coffeeBase?: CoffeeBase, customerName?: string, size?: 'Mediano' | 'Grande') => void;
     removeFromCart: (itemId: string) => void;
     updateQuantity: (itemId: string, delta: number) => void;
     clearCart: () => void;
@@ -21,7 +21,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         quantity: number,
         customization?: CoffeeCustomization,
         coffeeBase?: CoffeeBase,
-        customerName?: string
+        customerName?: string,
+        size?: 'Mediano' | 'Grande'
     ) => {
         setItems(prev => {
             // Basic ID generation logic: simple check if it handles customization
@@ -32,10 +33,10 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
             // If it's a simple product (bread/soda), try to group it
             if (!isCustom) {
-                const existingItem = prev.find(item => item.product.id === product.id);
+                const existingItem = prev.find(item => item.product.id === product.id && item.size === size);
                 if (existingItem) {
                     return prev.map(item =>
-                        item.product.id === product.id
+                        item.product.id === product.id && item.size === size
                             ? { ...item, quantity: item.quantity + quantity }
                             : item
                     );
@@ -49,7 +50,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
                 quantity,
                 customization,
                 coffeeBase,
-                customerName
+                customerName,
+                size
             };
 
             return [...prev, newItem];

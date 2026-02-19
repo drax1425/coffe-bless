@@ -14,7 +14,10 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
 
     const categoriesOrder = [...new Set(items.map(i => i.product.category))];
 
-    const total = items.reduce((sum, i) => sum + i.product.basePrice * i.quantity, 0);
+    const total = items.reduce((sum, i) => {
+        const price = i.size === 'Grande' && i.product.largePrice ? i.product.largePrice : i.product.basePrice;
+        return sum + price * i.quantity;
+    }, 0);
 
     if (items.length === 0) {
         return (
@@ -58,7 +61,8 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
                                     {itemsInCat.map(item => (
                                         <li key={item.id} className="mb-1">
                                             <span className="font-bold">{item.quantity}x {item.product.name}</span>
-                                            <span className="text-stone-400 text-sm ml-2">${(item.product.basePrice * item.quantity).toLocaleString('es-CL')}</span>
+                                            {item.size && <span className="text-amber-600 text-sm ml-1">({item.size})</span>}
+                                            <span className="text-stone-400 text-sm ml-2">${((item.size === 'Grande' && item.product.largePrice ? item.product.largePrice : item.product.basePrice) * item.quantity).toLocaleString('es-CL')}</span>
                                             {item.product.allowsCustomization && item.customization && (
                                                 <span className="block text-sm text-stone-600 italic">
                                                     ({item.coffeeBase}, {item.customization.milk}, {item.customization.syrup !== 'Ninguno' ? item.customization.syrup : ''} {item.customization.extras.join(', ')})

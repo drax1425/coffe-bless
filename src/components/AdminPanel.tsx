@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import type { Product, Category } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Lock, Eye, EyeOff, FolderPlus } from 'lucide-react';
+import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Lock, Eye, EyeOff, FolderPlus, ChevronDown } from 'lucide-react';
 
 // Contraseña del admin (cambiar por la real)
 const ADMIN_PASSWORD = 'coffebless2024';
@@ -25,6 +25,16 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
     const [hasChanges, setHasChanges] = useState(false);
     const [showAddForm, setShowAddForm] = useState(false);
     const [showAddCategory, setShowAddCategory] = useState(false);
+    const [expandedCats, setExpandedCats] = useState<Set<string>>(new Set());
+
+    const toggleCategory = (cat: string) => {
+        setExpandedCats(prev => {
+            const next = new Set(prev);
+            if (next.has(cat)) next.delete(cat);
+            else next.add(cat);
+            return next;
+        });
+    };
 
     // Derive categories from products
     const categories = [...new Set([...DEFAULT_CATEGORIES, ...editProducts.map(p => p.category)])];
@@ -32,6 +42,7 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
     // New product form state
     const [newName, setNewName] = useState('');
     const [newPrice, setNewPrice] = useState('');
+    const [newLargePrice, setNewLargePrice] = useState('');
     const [newCategory, setNewCategory] = useState<Category>(categories[0]);
 
     // New category form state
@@ -71,12 +82,14 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
             category: newCategory,
             basePrice: parseInt(newPrice),
             allowsCustomization: false,
+            ...(newLargePrice ? { largePrice: parseInt(newLargePrice) } : {}),
         };
 
         setEditProducts(prev => [...prev, newProduct]);
         setHasChanges(true);
         setNewName('');
         setNewPrice('');
+        setNewLargePrice('');
         setShowAddForm(false);
     };
 
@@ -269,19 +282,26 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                                         type="number"
                                         value={newPrice}
                                         onChange={(e) => setNewPrice(e.target.value)}
-                                        placeholder="Precio ($)"
+                                        placeholder="Precio Med ($)"
                                         className="flex-1 bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
                                     />
-                                    <select
-                                        value={newCategory}
-                                        onChange={(e) => setNewCategory(e.target.value)}
-                                        className="bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
-                                    >
-                                        {categories.map(c => (
-                                            <option key={c} value={c}>{c}</option>
-                                        ))}
-                                    </select>
+                                    <input
+                                        type="number"
+                                        value={newLargePrice}
+                                        onChange={(e) => setNewLargePrice(e.target.value)}
+                                        placeholder="Precio Gde ($)"
+                                        className="flex-1 bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
+                                    />
                                 </div>
+                                <select
+                                    value={newCategory}
+                                    onChange={(e) => setNewCategory(e.target.value)}
+                                    className="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
+                                >
+                                    {categories.map(c => (
+                                        <option key={c} value={c}>{c}</option>
+                                    ))}
+                                </select>
                                 <button
                                     onClick={handleAdd}
                                     disabled={!newName.trim() || !newPrice}
@@ -294,61 +314,89 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                     )}
                 </AnimatePresence>
 
-                {/* Products by Category */}
+                {/* Products by Category (Collapsible) */}
                 {categories.map(cat => {
                     const catProducts = editProducts.filter(p => p.category === cat);
                     if (catProducts.length === 0) return null;
+                    const isExpanded = expandedCats.has(cat);
 
                     return (
-                        <div key={cat} className="mb-6">
-                            <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3 px-1 flex items-center gap-2">
-                                {cat}
-                                <span className="text-xs font-normal text-stone-600">({catProducts.length})</span>
-                            </h3>
-                            <div className="space-y-2">
-                                {catProducts.map(product => (
+                        <div key={cat} className="mb-3">
+                            <button
+                                onClick={() => toggleCategory(cat)}
+                                className="w-full flex items-center justify-between bg-stone-800 rounded-xl px-4 py-3 border border-stone-700/50 hover:border-stone-600 transition-colors"
+                            >
+                                <div className="flex items-center gap-2">
+                                    <span className="text-sm font-bold text-stone-300 uppercase tracking-wider">{cat}</span>
+                                    <span className="text-xs bg-stone-700 text-stone-400 px-2 py-0.5 rounded-full">{catProducts.length}</span>
+                                </div>
+                                <ChevronDown size={18} className={`text-stone-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
+                            </button>
+                            <AnimatePresence>
+                                {isExpanded && (
                                     <motion.div
-                                        key={product.id}
-                                        layout
-                                        className="bg-stone-800 rounded-xl p-3 border border-stone-700/50 flex items-center gap-3"
+                                        initial={{ height: 0, opacity: 0 }}
+                                        animate={{ height: 'auto', opacity: 1 }}
+                                        exit={{ height: 0, opacity: 0 }}
+                                        className="overflow-hidden"
                                     >
-                                        <div className="flex-1 flex flex-col sm:flex-row sm:items-center gap-2">
-                                            <input
-                                                type="text"
-                                                value={product.name}
-                                                onChange={(e) => updateField(product.id, 'name', e.target.value)}
-                                                className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm font-medium focus:outline-none focus:border-amber-500 flex-1 min-w-0"
-                                            />
-                                            <div className="flex items-center gap-2">
-                                                <div className="flex items-center gap-1">
-                                                    <span className="text-stone-500 text-sm">$</span>
-                                                    <input
-                                                        type="number"
-                                                        value={product.basePrice}
-                                                        onChange={(e) => updateField(product.id, 'basePrice', parseInt(e.target.value) || 0)}
-                                                        className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm w-20 text-amber-400 font-bold focus:outline-none focus:border-amber-500"
-                                                    />
-                                                </div>
-                                                <select
-                                                    value={product.category}
-                                                    onChange={(e) => changeProductCategory(product.id, e.target.value)}
-                                                    className="bg-stone-900 border border-stone-700 rounded px-1 py-1 text-xs text-stone-400 focus:outline-none focus:border-amber-500"
+                                        <div className="space-y-2 pt-2 pl-2">
+                                            {catProducts.map(product => (
+                                                <motion.div
+                                                    key={product.id}
+                                                    layout
+                                                    className="bg-stone-800/60 rounded-xl p-3 border border-stone-700/30"
                                                 >
-                                                    {categories.map(c => (
-                                                        <option key={c} value={c}>{c}</option>
-                                                    ))}
-                                                </select>
-                                            </div>
+                                                    <div className="flex items-center gap-2 mb-2">
+                                                        <input
+                                                            type="text"
+                                                            value={product.name}
+                                                            onChange={(e) => updateField(product.id, 'name', e.target.value)}
+                                                            className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm font-medium focus:outline-none focus:border-amber-500 flex-1 min-w-0"
+                                                        />
+                                                        <select
+                                                            value={product.category}
+                                                            onChange={(e) => changeProductCategory(product.id, e.target.value)}
+                                                            className="bg-stone-900 border border-stone-700 rounded px-1 py-1 text-xs text-stone-400 focus:outline-none focus:border-amber-500"
+                                                        >
+                                                            {categories.map(c => (
+                                                                <option key={c} value={c}>{c}</option>
+                                                            ))}
+                                                        </select>
+                                                        <button
+                                                            onClick={() => handleDelete(product.id)}
+                                                            className="p-1.5 text-stone-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                                        >
+                                                            <Trash2 size={14} />
+                                                        </button>
+                                                    </div>
+                                                    <div className="flex items-center gap-3">
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-stone-600 text-xs">Med $</span>
+                                                            <input
+                                                                type="number"
+                                                                value={product.basePrice}
+                                                                onChange={(e) => updateField(product.id, 'basePrice', parseInt(e.target.value) || 0)}
+                                                                className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm w-16 text-amber-400 font-bold focus:outline-none focus:border-amber-500"
+                                                            />
+                                                        </div>
+                                                        <div className="flex items-center gap-1">
+                                                            <span className="text-stone-600 text-xs">Gde $</span>
+                                                            <input
+                                                                type="number"
+                                                                value={product.largePrice || ''}
+                                                                onChange={(e) => updateField(product.id, 'largePrice', parseInt(e.target.value) || 0)}
+                                                                placeholder="—"
+                                                                className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm w-16 text-amber-300 font-bold focus:outline-none focus:border-amber-500 placeholder:text-stone-700"
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </motion.div>
+                                            ))}
                                         </div>
-                                        <button
-                                            onClick={() => handleDelete(product.id)}
-                                            className="p-2 text-stone-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
-                                        >
-                                            <Trash2 size={16} />
-                                        </button>
                                     </motion.div>
-                                ))}
-                            </div>
+                                )}
+                            </AnimatePresence>
                         </div>
                     );
                 })}

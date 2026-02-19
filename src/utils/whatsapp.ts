@@ -22,8 +22,10 @@ export function formatOrderForWhatsApp(items: CartItem[]): string {
         lines.push('');
         lines.push(`📌 *${cat}*`);
         for (const item of catItems) {
+            const price = item.size === 'Grande' && item.product.largePrice ? item.product.largePrice : item.product.basePrice;
             let line = `  • ${item.quantity}x ${item.product.name}`;
-            line += ` — $${(item.product.basePrice * item.quantity).toLocaleString('es-CL')}`;
+            if (item.size) line += ` (${item.size})`;
+            line += ` — $${(price * item.quantity).toLocaleString('es-CL')}`;
 
             if (item.customization && item.coffeeBase) {
                 const details: string[] = [];
@@ -41,7 +43,10 @@ export function formatOrderForWhatsApp(items: CartItem[]): string {
     }
 
     // Total
-    const total = items.reduce((sum, i) => sum + i.product.basePrice * i.quantity, 0);
+    const total = items.reduce((sum, i) => {
+        const price = i.size === 'Grande' && i.product.largePrice ? i.product.largePrice : i.product.basePrice;
+        return sum + price * i.quantity;
+    }, 0);
     lines.push('');
     lines.push('─────────────────────');
     lines.push(`💰 *Total estimado: $${total.toLocaleString('es-CL')}*`);

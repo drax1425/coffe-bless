@@ -80,28 +80,63 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
                             filteredProducts.map(product => (
                                 <div
                                     key={product.id}
-                                    className="bg-stone-800 rounded-2xl p-4 flex justify-between items-center border border-stone-700/50 hover:border-amber-500/30 transition-colors"
+                                    className="bg-stone-800 rounded-2xl p-4 border border-stone-700/50 hover:border-amber-500/30 transition-colors"
                                 >
-                                    <div>
-                                        <h3 className="font-bold text-lg">{product.name}</h3>
-                                        <p className="text-amber-400 text-sm font-semibold">${product.basePrice.toLocaleString('es-CL')}</p>
+                                    <div className="flex justify-between items-start">
+                                        <div className="flex-1 min-w-0">
+                                            <h3 className="font-bold text-lg">{product.name}</h3>
+                                            {product.description && (
+                                                <p className="text-stone-500 text-xs mt-0.5 leading-snug">{product.description}</p>
+                                            )}
+                                        </div>
+
+                                        {product.allowsCustomization && (
+                                            <button
+                                                onClick={() => onCustomize(product.id)}
+                                                className="bg-stone-700 text-amber-400 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-stone-600 transition-colors flex items-center gap-2 shrink-0 ml-3"
+                                            >
+                                                <span>Personalizar</span>
+                                                <Coffee size={16} />
+                                            </button>
+                                        )}
                                     </div>
 
-                                    {product.allowsCustomization ? (
-                                        <button
-                                            onClick={() => onCustomize(product.id)}
-                                            className="bg-stone-700 text-amber-400 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-stone-600 transition-colors flex items-center gap-2"
-                                        >
-                                            <span>Personalizar</span>
-                                            <Coffee size={16} />
-                                        </button>
+                                    {/* Size buttons for dual-price products */}
+                                    {product.largePrice ? (
+                                        <div className="flex gap-2 mt-3">
+                                            <button
+                                                onClick={() => addToCart(product, 1, undefined, undefined, undefined, 'Mediano')}
+                                                className="flex-1 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-xl px-3 py-2.5 transition-colors flex items-center justify-between"
+                                            >
+                                                <div className="text-left">
+                                                    <p className="text-xs text-stone-400">Mediano</p>
+                                                    <p className="text-amber-400 font-bold text-sm">${product.basePrice.toLocaleString('es-CL')}</p>
+                                                </div>
+                                                <Plus size={18} className="text-amber-500" />
+                                            </button>
+                                            <button
+                                                onClick={() => addToCart(product, 1, undefined, undefined, undefined, 'Grande')}
+                                                className="flex-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl px-3 py-2.5 transition-colors flex items-center justify-between"
+                                            >
+                                                <div className="text-left">
+                                                    <p className="text-xs text-amber-400">Grande</p>
+                                                    <p className="text-amber-400 font-bold text-sm">${product.largePrice.toLocaleString('es-CL')}</p>
+                                                </div>
+                                                <Plus size={18} className="text-amber-500" />
+                                            </button>
+                                        </div>
+                                    ) : !product.allowsCustomization ? (
+                                        <div className="flex justify-between items-center mt-3">
+                                            <p className="text-amber-400 font-bold">${product.basePrice.toLocaleString('es-CL')}</p>
+                                            <button
+                                                onClick={() => addToCart(product, 1)}
+                                                className="bg-amber-500 text-stone-900 p-2 rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/10"
+                                            >
+                                                <Plus size={24} />
+                                            </button>
+                                        </div>
                                     ) : (
-                                        <button
-                                            onClick={() => addToCart(product, 1)}
-                                            className="bg-amber-500 text-stone-900 p-2 rounded-xl hover:bg-amber-400 transition-colors shadow-lg shadow-amber-500/10"
-                                        >
-                                            <Plus size={24} />
-                                        </button>
+                                        <p className="text-amber-400 font-bold text-sm mt-2">${product.basePrice.toLocaleString('es-CL')}</p>
                                     )}
                                 </div>
                             ))

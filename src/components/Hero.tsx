@@ -99,8 +99,8 @@ export const Hero = ({ onStart, onPlay, onAdmin }: HeroProps) => {
                     <div className="flex items-start gap-3">
                         <Clock size={20} className="text-amber-500 mt-0.5 shrink-0" />
                         <div>
-                            <p className="text-sm font-semibold text-white">Lunes a Domingo</p>
-                            <p className="text-xs text-stone-400">9:00 — 20:00</p>
+                            <p className="text-sm font-semibold text-white">Lunes a Viernes: 8:00 — 22:00</p>
+                            <p className="text-xs text-stone-400">Sáb, Dom y Festivos: 9:00 — 22:00</p>
                         </div>
                     </div>
 

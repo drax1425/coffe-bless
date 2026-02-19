@@ -16,17 +16,20 @@ export interface Product {
     name: string;
     category: Category;
     basePrice: number;
-    allowsCustomization: boolean; // True for coffees that support the builder
-    image?: string; // Optional image URL or emoji
+    allowsCustomization: boolean;
+    image?: string;
+    description?: string;
+    largePrice?: number; // Price for large size, if available
 }
 
 export interface CartItem {
     id: string; // Unique ID for the cart item (productID + customization hash)
     product: Product;
     quantity: number;
-    customization?: CoffeeCustomization; // Only for customizable products
-    coffeeBase?: CoffeeBase; // Specific base chosen if it's a coffee
-    customerName?: string; // Optional name for specific item
+    customization?: CoffeeCustomization;
+    coffeeBase?: CoffeeBase;
+    customerName?: string;
+    size?: 'Mediano' | 'Grande';
 }
 
 export const defaultCustomization: CoffeeCustomization = {
