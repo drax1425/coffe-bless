@@ -1,0 +1,62 @@
+import type { CartItem } from '../types';
+
+// Número de WhatsApp del café (con código de país)
+// Cambiar este número por el real del café
+export const CAFE_PHONE_NUMBER = '56941600915';
+
+/**
+ * Formatea los items del carrito como un mensaje de texto legible
+ * para enviar por WhatsApp.
+ */
+export function formatOrderForWhatsApp(items: CartItem[]): string {
+    const lines: string[] = [];
+
+    lines.push('🛒 *Nuevo Pedido — Coffe Bless*');
+    lines.push('─────────────────────');
+
+    // Group by category
+    const categories = [...new Set(items.map(i => i.product.category))];
+
+    for (const cat of categories) {
+        const catItems = items.filter(i => i.product.category === cat);
+        lines.push('');
+        lines.push(`📌 *${cat}*`);
+        for (const item of catItems) {
+            let line = `  • ${item.quantity}x ${item.product.name}`;
+            line += ` — $${(item.product.basePrice * item.quantity).toLocaleString('es-CL')}`;
+
+            if (item.customization && item.coffeeBase) {
+                const details: string[] = [];
+                details.push(item.coffeeBase);
+                if (item.customization.milk !== 'Entera') details.push(`Leche ${item.customization.milk}`);
+                if (item.customization.syrup !== 'Ninguno') details.push(item.customization.syrup);
+                if (item.customization.extras.length > 0) details.push(item.customization.extras.join(', '));
+                line += `\n     _(${details.join(' · ')})_`;
+                if (item.customerName) {
+                    line += `\n     👤 Para: *${item.customerName}*`;
+                }
+            }
+            lines.push(line);
+        }
+    }
+
+    // Total
+    const total = items.reduce((sum, i) => sum + i.product.basePrice * i.quantity, 0);
+    lines.push('');
+    lines.push('─────────────────────');
+    lines.push(`💰 *Total estimado: $${total.toLocaleString('es-CL')}*`);
+    lines.push('');
+    lines.push('_Enviado desde coffe-bless.vercel.app_');
+
+    return lines.join('\n');
+}
+
+/**
+ * Abre WhatsApp con el pedido formateado.
+ */
+export function sendWhatsAppOrder(items: CartItem[], phoneNumber: string = CAFE_PHONE_NUMBER): void {
+    const text = formatOrderForWhatsApp(items);
+    const encodedText = encodeURIComponent(text);
+    const url = `https://wa.me/${phoneNumber}?text=${encodedText}`;
+    window.open(url, '_blank');
+}
