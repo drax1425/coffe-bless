@@ -10,11 +10,13 @@ interface AdminPanelProps {
     products: Product[];
     categories: Category[];
     onSave: (products: Product[]) => Promise<void>;
+    onSaveCategory: (category: Category) => Promise<void>;
+    onDeleteCategory: (id: string) => Promise<void>;
     onReset: () => void;
     onBack: () => void;
 }
 
-export const AdminPanel = ({ products, categories, onSave, onReset, onBack }: AdminPanelProps) => {
+export const AdminPanel = ({ products, categories, onSave, onSaveCategory, onDeleteCategory, onReset, onBack }: AdminPanelProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -88,11 +90,26 @@ export const AdminPanel = ({ products, categories, onSave, onReset, onBack }: Ad
         setShowAddForm(false);
     };
 
-    const handleAddCategory = () => {
+    const handleAddCategory = async () => {
         if (!newCatName.trim()) return;
-        // En una implementación más robusta, aquí llamaríamos a una función onSaveCategory
-        // Por ahora, para no complicar el flujo de props, instamos al usuario a agregarlas via SQL o extender este panel.
-        alert('Gestión de categorías independiente activada. Por favor, agregue categorías en la base de Datos o use el script SQL.');
+
+        const id = `cat-${newCatName.toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "").replace(/\s+/g, '-')}`;
+        const newCategory: Category = {
+            id,
+            name: newCatName.trim(),
+            order: categories.length + 1
+        };
+
+        setIsSaving(true);
+        try {
+            await onSaveCategory(newCategory);
+            setNewCatName('');
+            setShowAddCategory(false);
+            // Si la categoría es la primera, la seleccionamos para nuevos productos
+            if (categories.length === 0) setNewCategoryId(id);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const [isSaving, setIsSaving] = useState(false);
@@ -319,8 +336,22 @@ export const AdminPanel = ({ products, categories, onSave, onReset, onBack }: Ad
                                 className="w-full flex items-center justify-between bg-stone-800 rounded-xl px-4 py-3 border border-stone-700/50 hover:border-stone-600 transition-colors"
                             >
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-stone-300 uppercase tracking-wider">{cat.name}</span>
-                                    <span className="text-xs bg-stone-700 text-stone-400 px-2 py-0.5 rounded-full">{catProducts.length}</span>
+                                    <div className="flex items-center gap-2">
+                                        <span className="text-sm font-bold text-stone-300 uppercase tracking-wider">{cat.name}</span>
+                                        <span className="text-xs bg-stone-700 text-stone-400 px-2 py-0.5 rounded-full">{catProducts.length}</span>
+                                    </div>
+                                    <button
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            if (confirm(`¿Eliminar la categoría "${cat.name}"?`)) {
+                                                onDeleteCategory(cat.id);
+                                            }
+                                        }}
+                                        className="p-1.5 text-stone-600 hover:text-red-400 hover:bg-red-500/10 rounded-lg transition-colors"
+                                        title="Eliminar categoría"
+                                    >
+                                        <Trash2 size={14} />
+                                    </button>
                                 </div>
                                 <ChevronDown size={18} className={`text-stone-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
                             </button>
