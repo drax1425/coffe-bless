@@ -6,16 +6,15 @@ import { ArrowLeft, Plus, Trash2, Save, RotateCcw, Lock, Eye, EyeOff, FolderPlus
 // Contraseña del admin (cambiar por la real)
 const ADMIN_PASSWORD = 'coffebless2024';
 
-const DEFAULT_CATEGORIES: Category[] = ['Café', 'Fríos', 'Chocolate', 'Té'];
-
 interface AdminPanelProps {
     products: Product[];
+    categories: Category[];
     onSave: (products: Product[]) => Promise<void>;
     onReset: () => void;
     onBack: () => void;
 }
 
-export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProps) => {
+export const AdminPanel = ({ products, categories, onSave, onReset, onBack }: AdminPanelProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -36,15 +35,11 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         });
     };
 
-    // Derive categories from products
-    const categories = [...new Set([...DEFAULT_CATEGORIES, ...editProducts.map(p => p.category)])];
-
     // New product form state
     const [newName, setNewName] = useState('');
     const [newPrice, setNewPrice] = useState('');
     const [newLargePrice, setNewLargePrice] = useState('');
-    const [newCategory, setNewCategory] = useState<Category>(categories[0]);
-    const [allowsCustomization, setAllowsCustomization] = useState(false);
+    const [newCategoryId, setNewCategoryId] = useState<string>(categories[0]?.id || '');
 
     // New category form state
     const [newCatName, setNewCatName] = useState('');
@@ -59,13 +54,13 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         }
     };
 
-    const updateField = (id: string, field: keyof Product, value: string | number | boolean) => {
+    const updateField = (id: string, field: keyof Product, value: string | number) => {
         setEditProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
         setHasChanges(true);
     };
 
-    const changeProductCategory = (id: string, category: Category) => {
-        setEditProducts(prev => prev.map(p => p.id === id ? { ...p, category } : p));
+    const changeProductCategory = (id: string, category_id: string) => {
+        setEditProducts(prev => prev.map(p => p.id === id ? { ...p, category_id } : p));
         setHasChanges(true);
     };
 
@@ -80,9 +75,8 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         const newProduct: Product = {
             id: `custom-${Date.now()}`,
             name: newName.trim(),
-            category: newCategory,
+            category_id: newCategoryId,
             basePrice: parseInt(newPrice),
-            allowsCustomization: allowsCustomization,
             ...(newLargePrice ? { largePrice: parseInt(newLargePrice) } : {}),
         };
 
@@ -91,25 +85,14 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         setNewName('');
         setNewPrice('');
         setNewLargePrice('');
-        setAllowsCustomization(false);
         setShowAddForm(false);
     };
 
     const handleAddCategory = () => {
         if (!newCatName.trim()) return;
-        // Add a placeholder product to create the category
-        const placeholder: Product = {
-            id: `custom-${Date.now()}`,
-            name: 'Nuevo Producto',
-            category: newCatName.trim(),
-            basePrice: 0,
-            allowsCustomization: false,
-        };
-        setEditProducts(prev => [...prev, placeholder]);
-        setHasChanges(true);
-        setNewCatName('');
-        setShowAddCategory(false);
-        setNewCategory(newCatName.trim());
+        // En una implementación más robusta, aquí llamaríamos a una función onSaveCategory
+        // Por ahora, para no complicar el flujo de props, instamos al usuario a agregarlas via SQL o extender este panel.
+        alert('Gestión de categorías independiente activada. Por favor, agregue categorías en la base de Datos o use el script SQL.');
     };
 
     const [isSaving, setIsSaving] = useState(false);
@@ -303,23 +286,14 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                                     />
                                 </div>
                                 <select
-                                    value={newCategory}
-                                    onChange={(e) => setNewCategory(e.target.value)}
+                                    value={newCategoryId}
+                                    onChange={(e) => setNewCategoryId(e.target.value)}
                                     className="w-full bg-stone-900 border border-stone-700 rounded-lg px-3 py-2 text-sm focus:outline-none focus:border-amber-500"
                                 >
                                     {categories.map(c => (
-                                        <option key={c} value={c}>{c}</option>
+                                        <option key={c.id} value={c.id}>{c.name}</option>
                                     ))}
                                 </select>
-                                <label className="flex items-center gap-2 px-1 cursor-pointer">
-                                    <input
-                                        type="checkbox"
-                                        checked={allowsCustomization}
-                                        onChange={(e) => setAllowsCustomization(e.target.checked)}
-                                        className="rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-amber-500"
-                                    />
-                                    <span className="text-xs text-stone-400">Permitir personalización (leche, extras, etc.)</span>
-                                </label>
                                 <button
                                     onClick={handleAdd}
                                     disabled={!newName.trim() || !newPrice}
@@ -334,18 +308,18 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
 
                 {/* Products by Category (Collapsible) */}
                 {categories.map(cat => {
-                    const catProducts = editProducts.filter(p => p.category === cat);
-                    if (catProducts.length === 0) return null;
-                    const isExpanded = expandedCats.has(cat);
+                    const catProducts = editProducts.filter(p => p.category_id === cat.id);
+                    if (catProducts.length === 0 && !showAddForm) return null;
+                    const isExpanded = expandedCats.has(cat.id);
 
                     return (
-                        <div key={cat} className="mb-3">
+                        <div key={cat.id} className="mb-3">
                             <button
-                                onClick={() => toggleCategory(cat)}
+                                onClick={() => toggleCategory(cat.id)}
                                 className="w-full flex items-center justify-between bg-stone-800 rounded-xl px-4 py-3 border border-stone-700/50 hover:border-stone-600 transition-colors"
                             >
                                 <div className="flex items-center gap-2">
-                                    <span className="text-sm font-bold text-stone-300 uppercase tracking-wider">{cat}</span>
+                                    <span className="text-sm font-bold text-stone-300 uppercase tracking-wider">{cat.name}</span>
                                     <span className="text-xs bg-stone-700 text-stone-400 px-2 py-0.5 rounded-full">{catProducts.length}</span>
                                 </div>
                                 <ChevronDown size={18} className={`text-stone-500 transition-transform ${isExpanded ? 'rotate-180' : ''}`} />
@@ -373,12 +347,12 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                                                             className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm font-medium focus:outline-none focus:border-amber-500 flex-1 min-w-0"
                                                         />
                                                         <select
-                                                            value={product.category}
+                                                            value={product.category_id}
                                                             onChange={(e) => changeProductCategory(product.id, e.target.value)}
                                                             className="bg-stone-900 border border-stone-700 rounded px-1 py-1 text-xs text-stone-400 focus:outline-none focus:border-amber-500"
                                                         >
                                                             {categories.map(c => (
-                                                                <option key={c} value={c}>{c}</option>
+                                                                <option key={c.id} value={c.id}>{c.name}</option>
                                                             ))}
                                                         </select>
                                                         <button
@@ -408,15 +382,6 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                                                                 className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm w-16 text-amber-300 font-bold focus:outline-none focus:border-amber-500 placeholder:text-stone-700"
                                                             />
                                                         </div>
-                                                        <label className="flex items-center gap-2 cursor-pointer ml-auto">
-                                                            <input
-                                                                type="checkbox"
-                                                                checked={product.allowsCustomization}
-                                                                onChange={(e) => updateField(product.id, 'allowsCustomization', e.target.checked)}
-                                                                className="rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-amber-500"
-                                                            />
-                                                            <span className="text-[10px] text-stone-500 uppercase font-bold">Pers.</span>
-                                                        </label>
                                                     </div>
                                                 </motion.div>
                                             ))}

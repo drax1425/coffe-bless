@@ -1,34 +1,48 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { Product } from '../types';
+import type { Product, Category } from '../types';
 import { supabase } from '../lib/supabase';
-import { products as defaultProducts } from '../data/products';
+import { products as defaultProducts, categories as defaultCategories } from '../data/products';
 
-/**
- * Hook que gestiona los productos. Lee desde Supabase.
- * Mantiene los defaults si la base de datos está vacía.
- */
 export function useProducts() {
     const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
     const [loading, setLoading] = useState(true);
 
-    const fetchProducts = useCallback(async () => {
+    const fetchData = useCallback(async () => {
         try {
             setLoading(true);
-            const { data, error } = await supabase
-                .from('products')
+
+            // Fetch categories
+            const { data: catData, error: catError } = await supabase
+                .from('categories')
                 .select('*')
-                .order('category', { ascending: true });
+                .order('order', { ascending: true });
 
-            if (error) throw error;
+            if (catError) throw catError;
 
-            if (data && data.length > 0) {
-                setProducts(data as Product[]);
+            // Fetch products with their category info
+            const { data: prodData, error: prodError } = await supabase
+                .from('products')
+                .select('*, category:category_id(*)')
+                .order('name', { ascending: true });
+
+            if (prodError) throw prodError;
+
+            if (catData && catData.length > 0) {
+                setCategories(catData);
             } else {
-                // Si no hay datos, usar los por defecto
+                setCategories(defaultCategories);
+            }
+
+            if (prodData && prodData.length > 0) {
+                setProducts(prodData as Product[]);
+            } else {
                 setProducts(defaultProducts);
             }
+
         } catch (error) {
-            console.error('Error fetching products from Supabase:', error);
+            console.error('Error fetching data from Supabase:', error);
+            setCategories(defaultCategories);
             setProducts(defaultProducts);
         } finally {
             setLoading(false);
@@ -36,17 +50,15 @@ export function useProducts() {
     }, []);
 
     useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
+        fetchData();
+    }, [fetchData]);
 
     const saveProducts = useCallback(async (newProducts: Product[]) => {
         try {
-            // En Supabase, para simplificar este flujo de "guardar todo", 
-            // primero podríamos borrar y re-insertar, o usar upsert si los IDs coinciden.
-            // Para evitar problemas de IDs, usaremos upsert.
+            // Upsert products (categories are managed separately or must exist)
             const { error } = await supabase
                 .from('products')
-                .upsert(newProducts);
+                .upsert(newProducts.map(({ category, ...p }) => p)); // Remove relation object before upsert
 
             if (error) throw error;
             setProducts(newProducts);
@@ -57,27 +69,39 @@ export function useProducts() {
     }, []);
 
     const resetToDefaults = useCallback(async () => {
-        if (confirm('¿Estás seguro de que quieres restaurar los productos por defecto? Esto borrará los cambios en la base de datos.')) {
+        if (confirm('¿Estás seguro de que quieres restaurar los valores por defecto? Esto borrará los cambios en la base de datos.')) {
             try {
-                // Borrar todo y re-insertar defaults
-                const { error: deleteError } = await supabase.from('products').delete().neq('id', '0');
-                if (deleteError) throw deleteError;
+                setLoading(true);
 
-                const { error: insertError } = await supabase.from('products').insert(defaultProducts);
-                if (insertError) throw insertError;
+                // Borrar todo
+                await supabase.from('products').delete().neq('id', '0');
+                await supabase.from('categories').delete().neq('id', '0');
 
+                // Re-insertar categories y luego products
+                const { error: catError } = await supabase.from('categories').insert(defaultCategories);
+                if (catError) throw catError;
+
+                const { error: prodError } = await supabase.from('products').insert(defaultProducts);
+                if (prodError) throw prodError;
+
+                setCategories(defaultCategories);
                 setProducts(defaultProducts);
+                alert('Datos restaurados con éxito');
             } catch (error) {
                 console.error('Error resetting products:', error);
+                alert('Error al restaurar datos');
+            } finally {
+                setLoading(false);
             }
         }
     }, []);
 
     return {
         products,
+        categories,
         loading,
         saveProducts,
         resetToDefaults,
-        refresh: fetchProducts
+        refresh: fetchData
     };
 }

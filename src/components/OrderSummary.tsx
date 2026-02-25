@@ -67,12 +67,6 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
                                                 <span className="font-bold">{item.quantity}x {item.product.name}</span>
                                                 {item.size && <span className="text-amber-600 text-sm ml-1">({item.size})</span>}
                                                 <span className="text-stone-400 text-sm ml-2">${((item.size === 'Grande' && item.product.largePrice ? item.product.largePrice : item.product.basePrice) * item.quantity).toLocaleString('es-CL')}</span>
-                                                {item.product.allowsCustomization && item.customization && (
-                                                    <span className="block text-sm text-stone-600 italic">
-                                                        ({item.coffeeBase}, {item.customization.milk}, {item.customization.syrup !== 'Ninguno' ? item.customization.syrup : ''} {item.customization.extras.join(', ')})
-                                                        {item.customerName && <span className="block text-amber-600 font-bold">para {item.customerName}</span>}
-                                                    </span>
-                                                )}
 
                                                 {/* Linked extras */}
                                                 {linkedExtras.length > 0 && (

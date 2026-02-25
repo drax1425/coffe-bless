@@ -2,19 +2,25 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import type { Category, Product } from '../types';
 import { useCart } from '../context/CartContext';
-import { Plus, Coffee, ShoppingBag, ArrowLeft, Check } from 'lucide-react';
+import { Plus, ShoppingBag, ArrowLeft, Check } from 'lucide-react';
 
 interface MenuProps {
     products: Product[];
-    onCustomize: (productId: string) => void;
+    categories: Category[];
     onViewCart: () => void;
     onBack: () => void;
 }
 
-export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) => {
-    const categories = [...new Set(products.map(p => p.category))];
-    const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || 'Café');
+export const Menu = ({ products, categories, onViewCart, onBack }: MenuProps) => {
+    const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || { id: 'cat-cafe', name: 'Café' });
     const { addToCart, totalItems, lastAddedEvent } = useCart();
+
+    // Actualizar categoría activa si cambian las categorías y no hay nada seleccionado o lo seleccionado ya no existe
+    useEffect(() => {
+        if (categories.length > 0 && (!activeCategory || !categories.find(c => c.id === activeCategory.id))) {
+            setActiveCategory(categories[0]);
+        }
+    }, [categories]);
 
     // Toast state
     const [toast, setToast] = useState<{ name: string; parentName?: string } | null>(null);
@@ -33,7 +39,7 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
         }
     }, [lastAddedEvent]);
 
-    const filteredProducts = products.filter(p => p.category === activeCategory);
+    const filteredProducts = products.filter(p => p.category_id === activeCategory.id);
 
     return (
         <div className="min-h-screen bg-stone-900 text-stone-100 pb-24">
@@ -69,14 +75,14 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
                 <div className="flex gap-2 overflow-x-auto py-4 max-w-lg mx-auto no-scrollbar">
                     {categories.map(cat => (
                         <button
-                            key={cat}
+                            key={cat.id}
                             onClick={() => setActiveCategory(cat)}
-                            className={`px-4 py-2 rounded-full whitespace-nowrap transition-all border ${activeCategory === cat
+                            className={`px-4 py-2 rounded-full whitespace-nowrap transition-all border ${activeCategory.id === cat.id
                                 ? 'bg-amber-500 border-amber-500 text-stone-900 font-bold shadow-lg shadow-amber-500/20'
                                 : 'bg-transparent border-stone-700 text-stone-400 hover:border-stone-500'
                                 }`}
                         >
-                            {cat}
+                            {cat.name}
                         </button>
                     ))}
                 </div>
@@ -86,7 +92,7 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
             <div className="p-4 max-w-lg mx-auto space-y-4 pt-6">
                 <AnimatePresence mode='wait'>
                     <motion.div
-                        key={activeCategory}
+                        key={activeCategory.id}
                         initial={{ opacity: 0, x: 20 }}
                         animate={{ opacity: 1, x: 0 }}
                         exit={{ opacity: 0, x: -20 }}
@@ -111,23 +117,13 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
                                                 <p className="text-stone-500 text-xs mt-0.5 leading-snug">{product.description}</p>
                                             )}
                                         </div>
-
-                                        {product.allowsCustomization && (
-                                            <button
-                                                onClick={() => onCustomize(product.id)}
-                                                className="bg-stone-700 text-amber-400 px-4 py-2 rounded-xl text-sm font-semibold hover:bg-stone-600 transition-colors flex items-center gap-2 shrink-0 ml-3"
-                                            >
-                                                <span>Personalizar</span>
-                                                <Coffee size={16} />
-                                            </button>
-                                        )}
                                     </div>
 
-                                    {/* Size buttons for dual-price products */}
+                                    {/* Product Actions */}
                                     {product.largePrice ? (
                                         <div className="flex gap-2 mt-3">
                                             <button
-                                                onClick={() => addToCart(product, 1, undefined, undefined, undefined, 'Mediano')}
+                                                onClick={() => addToCart(product, 1, 'Mediano')}
                                                 className="flex-1 bg-stone-700 hover:bg-stone-600 border border-stone-600 rounded-xl px-3 py-2.5 transition-colors flex items-center justify-between"
                                             >
                                                 <div className="text-left">
@@ -137,7 +133,7 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
                                                 <Plus size={18} className="text-amber-500" />
                                             </button>
                                             <button
-                                                onClick={() => addToCart(product, 1, undefined, undefined, undefined, 'Grande')}
+                                                onClick={() => addToCart(product, 1, 'Grande')}
                                                 className="flex-1 bg-amber-500/10 hover:bg-amber-500/20 border border-amber-500/30 rounded-xl px-3 py-2.5 transition-colors flex items-center justify-between"
                                             >
                                                 <div className="text-left">
@@ -147,7 +143,7 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
                                                 <Plus size={18} className="text-amber-500" />
                                             </button>
                                         </div>
-                                    ) : !product.allowsCustomization ? (
+                                    ) : (
                                         <div className="flex justify-between items-center mt-3">
                                             <p className="text-amber-400 font-bold">${product.basePrice.toLocaleString('es-CL')}</p>
                                             <button
@@ -157,8 +153,6 @@ export const Menu = ({ products, onCustomize, onViewCart, onBack }: MenuProps) =
                                                 <Plus size={24} />
                                             </button>
                                         </div>
-                                    ) : (
-                                        <p className="text-amber-400 font-bold text-sm mt-2">${product.basePrice.toLocaleString('es-CL')}</p>
                                     )}
                                 </motion.div>
                             ))

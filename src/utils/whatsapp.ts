@@ -27,17 +27,6 @@ export function formatOrderForWhatsApp(items: CartItem[]): string {
             if (item.size) line += ` (${item.size})`;
             line += ` — $${(price * item.quantity).toLocaleString('es-CL')}`;
 
-            if (item.customization && item.coffeeBase) {
-                const details: string[] = [];
-                details.push(item.coffeeBase);
-                if (item.customization.milk !== 'Entera') details.push(`Leche ${item.customization.milk}`);
-                if (item.customization.syrup !== 'Ninguno') details.push(item.customization.syrup);
-                if (item.customization.extras.length > 0) details.push(item.customization.extras.join(', '));
-                line += `\n     _(${details.join(' · ')})_`;
-                if (item.customerName) {
-                    line += `\n     👤 Para: *${item.customerName}*`;
-                }
-            }
             lines.push(line);
         }
     }

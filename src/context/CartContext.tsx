@@ -1,6 +1,6 @@
 import { createContext, useContext, useState, useCallback } from 'react';
 import type { ReactNode } from 'react';
-import type { CartItem, Product, CoffeeCustomization, CoffeeBase } from '../types';
+import type { CartItem, Product } from '../types';
 
 interface AddToCartResult {
     addedItem: CartItem;
@@ -9,7 +9,7 @@ interface AddToCartResult {
 
 interface CartContextType {
     items: CartItem[];
-    addToCart: (product: Product, quantity: number, customization?: CoffeeCustomization, coffeeBase?: CoffeeBase, customerName?: string, size?: 'Mediano' | 'Grande') => AddToCartResult | null;
+    addToCart: (product: Product, quantity: number, size?: 'Mediano' | 'Grande') => AddToCartResult | null;
     removeFromCart: (itemId: string) => void;
     updateQuantity: (itemId: string, delta: number) => void;
     clearCart: () => void;
@@ -27,19 +27,15 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     const addToCart = useCallback((
         product: Product,
         quantity: number,
-        customization?: CoffeeCustomization,
-        coffeeBase?: CoffeeBase,
-        customerName?: string,
         size?: 'Mediano' | 'Grande'
     ): AddToCartResult | null => {
         let result: AddToCartResult | null = null;
 
         setItems(prev => {
-            const isCustom = product.allowsCustomization;
             const isExtra = product.category === 'Extras';
 
-            // If it's a simple product (not custom, not extra), try to group it
-            if (!isCustom && !isExtra) {
+            // If it's a simple product (not extra), try to group it
+            if (!isExtra) {
                 const existingItem = prev.find(item => item.product.id === product.id && item.size === size && !item.parentItemId);
                 if (existingItem) {
                     const updated = prev.map(item =>
@@ -58,9 +54,6 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
                 id: Math.random().toString(36).substr(2, 9),
                 product,
                 quantity,
-                customization,
-                coffeeBase,
-                customerName,
                 size
             };
 

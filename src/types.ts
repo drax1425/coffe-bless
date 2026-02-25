@@ -1,40 +1,24 @@
-export type CoffeeBase = 'Espresso' | 'Americano' | 'Latte' | 'Cappuccino' | 'Cold Brew' | 'Bombón' | 'Chocolate' | 'Frappuccino';
-export type Milk = 'Entera' | 'Descremada' | 'Avena' | 'Almendra' | 'Soya';
-export type Syrup = 'Ninguno' | 'Vainilla' | 'Caramelo' | 'Avellana';
-export type Extra = 'Crema Batida' | 'Extra Shot' | 'Hielo' | 'Canela' | 'Malvaviscos';
-
-export interface CoffeeCustomization {
-    milk: Milk;
-    syrup: Syrup;
-    extras: Extra[];
+export interface Category {
+    id: string;
+    name: string;
+    order?: number;
 }
-
-export type Category = string;
 
 export interface Product {
     id: string;
     name: string;
-    category: Category;
+    category_id: string;
+    category?: Category; // Populado por el join en Supabase
     basePrice: number;
-    allowsCustomization: boolean;
     image?: string;
     description?: string;
-    largePrice?: number; // Price for large size, if available
+    largePrice?: number;
 }
 
 export interface CartItem {
-    id: string; // Unique ID for the cart item (productID + customization hash)
+    id: string; // Unique ID for the cart item (productID + size)
     product: Product;
     quantity: number;
-    customization?: CoffeeCustomization;
-    coffeeBase?: CoffeeBase;
-    customerName?: string;
     size?: 'Mediano' | 'Grande';
     parentItemId?: string; // Links an extra to the parent product it belongs to
 }
-
-export const defaultCustomization: CoffeeCustomization = {
-    milk: 'Entera',
-    syrup: 'Ninguno',
-    extras: [],
-};
