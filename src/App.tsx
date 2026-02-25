@@ -6,6 +6,7 @@ import { Menu } from './components/Menu';
 import { AdminPanel } from './components/AdminPanel';
 import { FloatingWhatsApp } from './components/FloatingWhatsApp';
 import { SplashScreen } from './components/SplashScreen';
+import { Analytics } from '@vercel/analytics/react';
 import { CartProvider, useCart } from './context/CartContext';
 import { useProducts } from './hooks/useProducts';
 
@@ -70,6 +71,9 @@ function AppContent() {
 
       {/* Floating WhatsApp Button */}
       <FloatingWhatsApp show={showFloatingWA} />
+
+      {/* Vercel Analytics */}
+      <Analytics />
     </div>
   );
 }
