@@ -1,11 +1,22 @@
 import { useState, useEffect, useCallback } from 'react';
-import type { CoffeeBase, CoffeeCustomization, Extra } from '../types';
 import { motion, AnimatePresence } from 'framer-motion';
 import { LivingCup } from './LivingCup';
 import {
     ChevronLeft, Zap, Moon, Coffee, Heart,
     Hand, Music
 } from 'lucide-react';
+
+// Tipos locales para el juego (desacoplados del sistema de pedidos)
+type CoffeeBase = 'Espresso' | 'Americano' | 'Latte' | 'Cappuccino' | 'Frappuccino' | 'Chocolate' | 'Bombón' | 'Cold Brew';
+type MilkType = 'Entera' | 'Descremada' | 'Sin Lactosa' | 'Avena' | 'Almendra' | 'Soya';
+type SyrupType = 'Ninguno' | 'Vainilla' | 'Caramelo' | 'Avellana' | 'Chocolate';
+type Extra = 'Hielo' | 'Crema Batida' | 'Extra Shot' | 'Malvaviscos' | 'Canela';
+
+interface CoffeeCustomization {
+    milk: MilkType;
+    syrup: SyrupType;
+    extras: Extra[];
+}
 
 interface GameZoneProps {
     onBack: () => void;

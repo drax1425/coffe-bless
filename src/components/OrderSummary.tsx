@@ -1,6 +1,7 @@
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
 import { ArrowLeft, Trash2, MessageCircle, Link } from 'lucide-react';
+import type { Category } from '../types';
 
 import { sendWhatsAppOrder } from '../utils/whatsapp';
 
@@ -14,7 +15,14 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
     const { mainItems, extrasMap } = getGroupedItems();
 
     // Get categories from main items only (extras show under their parent)
-    const categoriesOrder = [...new Set(mainItems.map(i => i.product.category))];
+    const categories: Category[] = [];
+    const seenIds = new Set<string>();
+    mainItems.forEach(i => {
+        if (i.product.category && !seenIds.has(i.product.category.id)) {
+            categories.push(i.product.category);
+            seenIds.add(i.product.category.id);
+        }
+    });
 
     const total = items.reduce((sum, i) => {
         const price = i.size === 'Grande' && i.product.largePrice ? i.product.largePrice : i.product.basePrice;
@@ -52,13 +60,13 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
                 <div className="text-xl font-medium leading-relaxed space-y-4">
                     <p className="font-bold text-2xl mb-2">"Hola, llevo {totalItems} cosas:"</p>
 
-                    {categoriesOrder.map(cat => {
-                        const itemsInCat = mainItems.filter(i => i.product.category === cat);
+                    {categories.map(cat => {
+                        const itemsInCat = mainItems.filter(i => i.product.category_id === cat.id);
                         if (itemsInCat.length === 0) return null;
 
                         return (
-                            <div key={cat} className="ml-4 border-l-4 border-amber-200 pl-4 py-1">
-                                <span className="text-stone-500 text-sm font-bold uppercase">{cat}</span>
+                            <div key={cat.id} className="ml-4 border-l-4 border-amber-200 pl-4 py-1">
+                                <span className="text-stone-500 text-sm font-bold uppercase">{cat.name}</span>
                                 <ul className="mt-1">
                                     {itemsInCat.map(item => {
                                         const linkedExtras = extrasMap.get(item.id) || [];
@@ -92,7 +100,7 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
 
                     {/* Orphan extras (no parent) */}
                     {(() => {
-                        const orphanExtras = mainItems.filter(i => i.product.category === 'Extras');
+                        const orphanExtras = mainItems.filter(i => i.product.category_id === 'cat-extras');
                         if (orphanExtras.length === 0) return null;
                         return (
                             <div className="ml-4 border-l-4 border-amber-200 pl-4 py-1">

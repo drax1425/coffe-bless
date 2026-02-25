@@ -1,7 +1,18 @@
 import { motion, AnimatePresence } from 'framer-motion';
-import type { CoffeeBase, CoffeeCustomization } from '../types';
 import { CloudSnow, PartyPopper, Heart, Zap } from 'lucide-react';
 import { useEffect, useState } from 'react';
+
+// Tipos locales para el juego (desacoplados del sistema de pedidos)
+type CoffeeBase = 'Espresso' | 'Americano' | 'Latte' | 'Cappuccino' | 'Frappuccino' | 'Chocolate' | 'Bombón' | 'Cold Brew';
+type MilkType = 'Entera' | 'Descremada' | 'Sin Lactosa' | 'Avena' | 'Almendra' | 'Soya';
+type SyrupType = 'Ninguno' | 'Vainilla' | 'Caramelo' | 'Avellana' | 'Chocolate';
+type Extra = 'Hielo' | 'Crema Batida' | 'Extra Shot' | 'Malvaviscos' | 'Canela';
+
+interface CoffeeCustomization {
+    milk: MilkType;
+    syrup: SyrupType;
+    extras: Extra[];
+}
 
 interface LivingCupProps {
     base: CoffeeBase;

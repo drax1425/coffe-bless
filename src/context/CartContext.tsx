@@ -32,7 +32,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         let result: AddToCartResult | null = null;
 
         setItems(prev => {
-            const isExtra = product.category === 'Extras';
+            const isExtra = product.category_id === 'cat-extras';
 
             // If it's a simple product (not extra), try to group it
             if (!isExtra) {
@@ -59,7 +59,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
             // If it's an Extra, try to link it to the last non-extra product
             if (isExtra) {
-                const lastMainItem = [...prev].reverse().find(item => item.product.category !== 'Extras' && !item.parentItemId);
+                const lastMainItem = [...prev].reverse().find(item => item.product.category_id !== 'cat-extras' && !item.parentItemId);
                 if (lastMainItem) {
                     newItem.parentItemId = lastMainItem.id;
                     result = { addedItem: newItem, parentItem: lastMainItem };

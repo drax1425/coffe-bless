@@ -15,10 +15,20 @@ const categoryEmojis: Record<string, string> = {
 };
 
 export const MenuPreview = ({ products, onOrder }: MenuPreviewProps) => {
-    const categories = [...new Set(products.map(p => p.category))];
-    const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || 'Café');
+    // Extraer categorías únicas basándose en ID
+    const categories: Category[] = [];
+    const seenIds = new Set<string>();
 
-    const filtered = products.filter(p => p.category === activeCategory);
+    products.forEach(p => {
+        if (p.category && !seenIds.has(p.category.id)) {
+            categories.push(p.category);
+            seenIds.add(p.category.id);
+        }
+    });
+
+    const [activeCategory, setActiveCategory] = useState<Category>(categories[0] || { id: 'cat-cafe', name: 'Café' });
+
+    const filtered = products.filter(p => p.category_id === activeCategory.id);
 
     return (
         <div className="w-full px-4 py-10 max-w-2xl mx-auto">
@@ -30,21 +40,21 @@ export const MenuPreview = ({ products, onOrder }: MenuPreviewProps) => {
             <div className="flex justify-center gap-2 mb-6 flex-wrap">
                 {categories.map(cat => (
                     <button
-                        key={cat}
+                        key={cat.id}
                         onClick={() => setActiveCategory(cat)}
-                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCategory === cat
-                                ? 'bg-amber-500 text-stone-950'
-                                : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
+                        className={`px-4 py-2 rounded-full text-sm font-medium transition-all ${activeCategory.id === cat.id
+                            ? 'bg-amber-500 text-stone-950'
+                            : 'bg-stone-800 text-stone-400 hover:bg-stone-700'
                             }`}
                     >
-                        {categoryEmojis[cat] || '📦'} {cat}
+                        {categoryEmojis[cat.name] || '📦'} {cat.name}
                     </button>
                 ))}
             </div>
 
             {/* Product cards */}
             <motion.div
-                key={activeCategory}
+                key={activeCategory.id}
                 initial={{ opacity: 0, y: 10 }}
                 animate={{ opacity: 1, y: 0 }}
                 className="grid grid-cols-2 gap-3"
