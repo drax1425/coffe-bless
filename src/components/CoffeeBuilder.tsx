@@ -31,8 +31,22 @@ export const CoffeeBuilder = ({ initialBase, product, onAdd, onBack }: CoffeeBui
     const syrups: Syrup[] = ['Ninguno', 'Vainilla', 'Caramelo', 'Avellana'];
     const extrasList: Extra[] = ['Crema Batida', 'Extra Shot', 'Hielo', 'Canela'];
 
-    // Logic to determine if milk selection should be shown
-    const showMilkExample = ['Latte', 'Cappuccino', 'Bombón'].includes(base);
+    // Logic to determine which customization sections to show
+    const isCoffee = product.category === 'Café' || product.category === 'Fríos';
+    const isChocolate = product.category === 'Chocolate';
+
+    // Show milk only for coffee (that isn't Espresso/Americano) or chocolate
+    const showMilk = (isCoffee && !['Espresso', 'Espresso Doble', 'Americano'].includes(product.name)) || isChocolate;
+
+    // Show syrups for coffee and some tea
+    const showSyrups = isCoffee || product.name.includes('Tea');
+
+    // Show whipped cream only for specific drinks
+    const availableExtras = extrasList.filter(extra => {
+        if (extra === 'Crema Batida') return ['Mocca', 'Chocolate Caliente', 'Frappuccino', 'Nevado'].some(s => product.name.includes(s));
+        if (extra === 'Hielo') return product.category === 'Fríos' || ['Latte', 'Americano'].includes(product.name);
+        return true; // Extra shot and Canela are generally okay
+    });
 
     return (
         <div className="flex flex-col w-full min-h-screen bg-stone-900 text-white">
@@ -66,7 +80,7 @@ export const CoffeeBuilder = ({ initialBase, product, onAdd, onBack }: CoffeeBui
                 {/* Base Display (Read-only) */}
                 <div className="flex items-center gap-3 bg-stone-800/50 p-4 rounded-xl border border-stone-700/30">
                     <div className="h-10 w-10 rounded-full bg-amber-500/20 flex items-center justify-center text-amber-500 font-bold">
-                        {base.charAt(0)}
+                        {base ? base.charAt(0) : 'C'}
                     </div>
                     <div>
                         <h3 className="font-bold text-stone-200">{base}</h3>
@@ -74,8 +88,8 @@ export const CoffeeBuilder = ({ initialBase, product, onAdd, onBack }: CoffeeBui
                     </div>
                 </div>
 
-                {/* Milk Selection - Only for drinks that typically allow milk changes */}
-                {showMilkExample && (
+                {/* Milk Selection */}
+                {showMilk && (
                     <section>
                         <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Leche</h3>
                         <div className="flex flex-wrap gap-2">
@@ -93,38 +107,41 @@ export const CoffeeBuilder = ({ initialBase, product, onAdd, onBack }: CoffeeBui
                 )}
 
                 {/* Syrup Selection */}
-                <section>
-                    <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Sabor / Jarabe</h3>
-                    <div className="flex flex-wrap gap-2">
-                        {syrups.map(s => (
-                            <button
-                                key={s}
-                                onClick={() => updateCustomization('syrup', s)}
-                                className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${customization.syrup === s ? 'bg-amber-200 text-stone-900 border-amber-200' : 'bg-transparent border-stone-700 text-stone-400'}`}
-                            >
-                                {s}
-                            </button>
-                        ))}
-                    </div>
-                </section>
+                {showSyrups && (
+                    <section>
+                        <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Sabor / Jarabe</h3>
+                        <div className="flex flex-wrap gap-2">
+                            {syrups.map(s => (
+                                <button
+                                    key={s}
+                                    onClick={() => updateCustomization('syrup', s)}
+                                    className={`px-4 py-2 rounded-full text-sm font-medium border transition-all ${customization.syrup === s ? 'bg-amber-200 text-stone-900 border-amber-200' : 'bg-transparent border-stone-700 text-stone-400'}`}
+                                >
+                                    {s}
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+                )}
 
                 {/* Extras Selection */}
-                <section>
-                    <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Extras</h3>
-                    <div className="grid grid-cols-2 gap-3">
-                        {extrasList.map(extra => (
-                            <button
-                                key={extra}
-                                onClick={() => toggleExtra(extra)}
-                                className={`p-3 rounded-xl border flex items-center justify-between transition-all ${customization.extras.includes(extra) ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-stone-800 border-stone-700 text-stone-400 hover:border-stone-600'}`}
-                            >
-                                <span>{extra}</span>
-                                {customization.extras.includes(extra) && <Check size={16} />}
-                            </button>
-                        ))}
-                    </div>
-                </section>
-
+                {availableExtras.length > 0 && (
+                    <section>
+                        <h3 className="text-sm font-bold text-stone-500 uppercase tracking-wider mb-3">Extras</h3>
+                        <div className="grid grid-cols-2 gap-3">
+                            {availableExtras.map(extra => (
+                                <button
+                                    key={extra}
+                                    onClick={() => toggleExtra(extra)}
+                                    className={`p-3 rounded-xl border flex items-center justify-between transition-all ${customization.extras.includes(extra) ? 'bg-green-500/20 border-green-500 text-green-400' : 'bg-stone-800 border-stone-700 text-stone-400 hover:border-stone-600'}`}
+                                >
+                                    <span>{extra}</span>
+                                    {customization.extras.includes(extra) && <Check size={16} />}
+                                </button>
+                            ))}
+                        </div>
+                    </section>
+                )}
             </div>
 
             {/* Floating Action Button */}
