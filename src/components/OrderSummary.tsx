@@ -1,6 +1,6 @@
 import { motion } from 'framer-motion';
 import { useCart } from '../context/CartContext';
-import { ArrowLeft, Trash2, MessageCircle } from 'lucide-react';
+import { ArrowLeft, Trash2, MessageCircle, Link } from 'lucide-react';
 
 import { sendWhatsAppOrder } from '../utils/whatsapp';
 
@@ -10,9 +10,11 @@ interface OrderSummaryProps {
 }
 
 export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
-    const { items, totalItems } = useCart();
+    const { items, totalItems, getGroupedItems } = useCart();
+    const { mainItems, extrasMap } = getGroupedItems();
 
-    const categoriesOrder = [...new Set(items.map(i => i.product.category))];
+    // Get categories from main items only (extras show under their parent)
+    const categoriesOrder = [...new Set(mainItems.map(i => i.product.category))];
 
     const total = items.reduce((sum, i) => {
         const price = i.size === 'Grande' && i.product.largePrice ? i.product.largePrice : i.product.basePrice;
@@ -51,30 +53,67 @@ export const OrderSummary = ({ onBack, onClear }: OrderSummaryProps) => {
                     <p className="font-bold text-2xl mb-2">"Hola, llevo {totalItems} cosas:"</p>
 
                     {categoriesOrder.map(cat => {
-                        const itemsInCat = items.filter(i => i.product.category === cat);
+                        const itemsInCat = mainItems.filter(i => i.product.category === cat);
                         if (itemsInCat.length === 0) return null;
 
                         return (
                             <div key={cat} className="ml-4 border-l-4 border-amber-200 pl-4 py-1">
                                 <span className="text-stone-500 text-sm font-bold uppercase">{cat}</span>
                                 <ul className="mt-1">
-                                    {itemsInCat.map(item => (
+                                    {itemsInCat.map(item => {
+                                        const linkedExtras = extrasMap.get(item.id) || [];
+                                        return (
+                                            <li key={item.id} className="mb-2">
+                                                <span className="font-bold">{item.quantity}x {item.product.name}</span>
+                                                {item.size && <span className="text-amber-600 text-sm ml-1">({item.size})</span>}
+                                                <span className="text-stone-400 text-sm ml-2">${((item.size === 'Grande' && item.product.largePrice ? item.product.largePrice : item.product.basePrice) * item.quantity).toLocaleString('es-CL')}</span>
+                                                {item.product.allowsCustomization && item.customization && (
+                                                    <span className="block text-sm text-stone-600 italic">
+                                                        ({item.coffeeBase}, {item.customization.milk}, {item.customization.syrup !== 'Ninguno' ? item.customization.syrup : ''} {item.customization.extras.join(', ')})
+                                                        {item.customerName && <span className="block text-amber-600 font-bold">para {item.customerName}</span>}
+                                                    </span>
+                                                )}
+
+                                                {/* Linked extras */}
+                                                {linkedExtras.length > 0 && (
+                                                    <ul className="ml-4 mt-1 space-y-0.5">
+                                                        {linkedExtras.map(extra => (
+                                                            <li key={extra.id} className="flex items-center gap-2 text-sm text-stone-500">
+                                                                <Link size={12} className="text-amber-400 shrink-0" />
+                                                                <span>
+                                                                    {extra.quantity}x {extra.product.name}
+                                                                    <span className="text-stone-400 ml-1">+${(extra.product.basePrice * extra.quantity).toLocaleString('es-CL')}</span>
+                                                                </span>
+                                                            </li>
+                                                        ))}
+                                                    </ul>
+                                                )}
+                                            </li>
+                                        );
+                                    })}
+                                </ul>
+                            </div>
+                        );
+                    })}
+
+                    {/* Orphan extras (no parent) */}
+                    {(() => {
+                        const orphanExtras = mainItems.filter(i => i.product.category === 'Extras');
+                        if (orphanExtras.length === 0) return null;
+                        return (
+                            <div className="ml-4 border-l-4 border-amber-200 pl-4 py-1">
+                                <span className="text-stone-500 text-sm font-bold uppercase">Extras</span>
+                                <ul className="mt-1">
+                                    {orphanExtras.map(item => (
                                         <li key={item.id} className="mb-1">
                                             <span className="font-bold">{item.quantity}x {item.product.name}</span>
-                                            {item.size && <span className="text-amber-600 text-sm ml-1">({item.size})</span>}
-                                            <span className="text-stone-400 text-sm ml-2">${((item.size === 'Grande' && item.product.largePrice ? item.product.largePrice : item.product.basePrice) * item.quantity).toLocaleString('es-CL')}</span>
-                                            {item.product.allowsCustomization && item.customization && (
-                                                <span className="block text-sm text-stone-600 italic">
-                                                    ({item.coffeeBase}, {item.customization.milk}, {item.customization.syrup !== 'Ninguno' ? item.customization.syrup : ''} {item.customization.extras.join(', ')})
-                                                    {item.customerName && <span className="block text-amber-600 font-bold">para {item.customerName}</span>}
-                                                </span>
-                                            )}
+                                            <span className="text-stone-400 text-sm ml-2">${(item.product.basePrice * item.quantity).toLocaleString('es-CL')}</span>
                                         </li>
                                     ))}
                                 </ul>
                             </div>
                         );
-                    })}
+                    })()}
 
                     {/* Total */}
                     <div className="border-t-2 border-stone-200 pt-4 mt-4 flex justify-between items-center">

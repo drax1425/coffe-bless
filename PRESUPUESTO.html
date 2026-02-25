@@ -1,0 +1,271 @@
+<!DOCTYPE html>
+<html lang="es">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Presupuesto - Coffe Bless</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;800&display=swap');
+
+        body {
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+            line-height: 1.6;
+            color: #1c1917;
+            background: #f5f5f4;
+            margin: 0;
+            padding: 40px;
+        }
+
+        .page {
+            background: white;
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 60px;
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.1);
+            border-radius: 8px;
+        }
+
+        h1 {
+            color: #d97706;
+            /* amber-600 */
+            font-size: 28px;
+            border-bottom: 2px solid #fcd34d;
+            padding-bottom: 15px;
+            margin-bottom: 30px;
+        }
+
+        h2 {
+            font-size: 18px;
+            color: #44403c;
+            margin-top: 30px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid #e7e5e4;
+            padding-bottom: 8px;
+        }
+
+        h3 {
+            font-size: 16px;
+            color: #78350f;
+            /* amber-900 */
+            margin-top: 25px;
+            margin-bottom: 10px;
+        }
+
+        p,
+        li {
+            font-size: 14px;
+            color: #57534e;
+        }
+
+        ul {
+            padding-left: 20px;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+            font-size: 14px;
+        }
+
+        th,
+        td {
+            text-align: left;
+            padding: 12px;
+            border-bottom: 1px solid #e7e5e4;
+        }
+
+        th {
+            background-color: #fafaf9;
+            font-weight: 600;
+            color: #44403c;
+        }
+
+        td {
+            color: #57534e;
+        }
+
+        .highlight-price {
+            font-size: 18px;
+            font-weight: 800;
+            color: #d97706;
+        }
+
+        .header-info {
+            display: flex;
+            justify-content: space-between;
+            margin-bottom: 40px;
+            font-size: 14px;
+            color: #78716c;
+        }
+
+        .footer {
+            margin-top: 60px;
+            border-top: 2px solid #fcd34d;
+            padding-top: 20px;
+            font-size: 12px;
+            color: #a8a29e;
+            text-align: center;
+        }
+
+        @media print {
+            body {
+                background: white;
+                padding: 0;
+            }
+
+            .page {
+                box-shadow: none;
+                padding: 0;
+                margin: 0;
+                width: 100%;
+            }
+
+            button {
+                display: none;
+            }
+        }
+
+        .print-btn {
+            position: fixed;
+            bottom: 30px;
+            right: 30px;
+            background: #d97706;
+            color: white;
+            border: none;
+            padding: 15px 30px;
+            border-radius: 50px;
+            font-weight: bold;
+            cursor: pointer;
+            box-shadow: 0 4px 12px rgba(217, 119, 6, 0.3);
+            transition: transform 0.2s;
+        }
+
+        .print-btn:hover {
+            transform: scale(1.05);
+            background: #b45309;
+        }
+    </style>
+</head>
+
+<body>
+
+    <button onclick="window.print()" class="print-btn">🖨️ Guardar como PDF</button>
+
+    <div class="page">
+        <div class="header-info">
+            <div>
+                <strong>Coffee Bless — Cafetería Móvil</strong><br>
+                Variante El Toyo 149<br>
+                San José de Maipo
+            </div>
+            <div style="text-align: right;">
+                <strong>Fecha:</strong> 19 de Febrero 2026<br>
+                <strong>Validez:</strong> 15 días
+            </div>
+        </div>
+
+        <h1>☕ Presupuesto Página Web</h1>
+
+        <h2>📋 Descripción del Proyecto</h2>
+        <p>Diseño y desarrollo completo de una página web profesional para Coffee Bless, con tecnología moderna (React),
+            optimizada para dispositivos móviles, con menú digital interactivo, sistema de pedidos automatizado por
+            WhatsApp, panel de administración autogestionable y experiencia gamificada para fidelización de clientes.
+        </p>
+
+        <h2>✅ Servicios Incluidos</h2>
+
+        <h3>1. Diseño y Desarrollo Web Profesional</h3>
+        <ul>
+            <li>Diseño UI/UX premium con identidad de marca (Colores Stone/Amber)</li>
+            <li>100% responsivo (celular, tablet, computador)</li>
+            <li>Pantalla de bienvenida animada con logo</li>
+            <li>Optimización SEO y rendimiento</li>
+        </ul>
+
+        <h3>2. Menú Digital Interactivo & Admin</h3>
+        <ul>
+            <li>Catálogo completo con gestión de precios y categorías</li>
+            <li><strong>Panel de Administración:</strong> Autogestionable, protegido con contraseña e interfaz visual
+                simple.</li>
+            <li><strong>Pedidos WhatsApp:</strong> Sistema automático que envía el detalle directo al chat del local.
+            </li>
+        </ul>
+
+        <h3>3. Experiencia Gamificada</h3>
+        <ul>
+            <li>Mascota virtual interactiva "Living Cup"</li>
+            <li>Mini-juego para clientes y sistema de reacciones</li>
+        </ul>
+
+        <h2>💰 Inversión</h2>
+
+        <table>
+            <thead>
+                <tr>
+                    <th>Concepto</th>
+                    <th>Valor</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr>
+                    <td>Diseño y desarrollo web profesional</td>
+                    <td>$120.000</td>
+                </tr>
+                <tr>
+                    <td>Menú digital + Panel de Administración</td>
+                    <td>$130.000</td>
+                </tr>
+                <tr>
+                    <td>Sistema de pedidos WhatsApp</td>
+                    <td>$50.000</td>
+                </tr>
+                <tr>
+                    <td>Experiencia gamificada</td>
+                    <td>$40.000</td>
+                </tr>
+                <tr>
+                    <td>Integración y Capacitación</td>
+                    <td>$40.000</td>
+                </tr>
+                <tr style="background-color: #fffbeb;">
+                    <td><strong>Subtotal Desarrollo</strong></td>
+                    <td><strong>$380.000</strong></td>
+                </tr>
+                <tr>
+                    <td>Dominio .cl (1 año) + Hosting</td>
+                    <td>$25.000</td>
+                </tr>
+            </tbody>
+        </table>
+
+        <div style="text-align: right; margin-top: 30px;">
+            <p style="text-decoration: line-through; color: #a8a29e;">Precio Lista: $405.000 CLP</p>
+            <p style="font-size: 24px; color: #d97706; font-weight: bold;">TOTAL: $350.000 CLP</p>
+            <p style="font-size: 14px; font-style: italic; color: #78716c;">(Oferta Lanzamiento)</p>
+        </div>
+
+        <h2>📅 Condiciones Comerciales</h2>
+        <ul>
+            <li><strong>Entrega:</strong> Inmediata (Proyecto finalizado y desplegado)</li>
+            <li><strong>Forma de Pago:</strong> 50% inicial, 50% contra entrega (o 3 cuotas conversables)</li>
+            <li><strong>Garantía:</strong> 30 días de soporte técnico gratuito post-entrega.</li>
+            <li><strong>Demo en vivo:</strong> <a href="https://coffe-bless.vercel.app"
+                    style="color: #d97706;">coffe-bless.vercel.app</a></li>
+        </ul>
+
+        <div class="footer">
+            <p><strong>Andrés Barahona</strong> — Desarrollador Full Stack</p>
+            <p>+56 9 4160 0915</p>
+        </div>
+    </div>
+
+    <script>
+        // Auto-print on load option (commented out to be less intrusive, button is better)
+        // window.onload = () => window.print();
+    </script>
+</body>
+
+</html>

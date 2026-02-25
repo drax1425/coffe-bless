@@ -119,7 +119,7 @@ Diseño y desarrollo completo de una página web profesional para Coffee Bless, 
 
 **Desarrollador:** Andrés Barahona  
 **WhatsApp:** +56 9 4160 0915  
-**Portafolio:** En desarrollo
+**Demo en vivo:** [coffe-bless.vercel.app](https://coffe-bless.vercel.app)
 
 ---
 

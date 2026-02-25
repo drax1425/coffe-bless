@@ -30,6 +30,7 @@ export interface CartItem {
     coffeeBase?: CoffeeBase;
     customerName?: string;
     size?: 'Mediano' | 'Grande';
+    parentItemId?: string; // Links an extra to the parent product it belongs to
 }
 
 export const defaultCustomization: CoffeeCustomization = {
