@@ -10,7 +10,7 @@ const DEFAULT_CATEGORIES: Category[] = ['Café', 'Fríos', 'Chocolate', 'Té'];
 
 interface AdminPanelProps {
     products: Product[];
-    onSave: (products: Product[]) => void;
+    onSave: (products: Product[]) => Promise<void>;
     onReset: () => void;
     onBack: () => void;
 }
@@ -44,6 +44,7 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
     const [newPrice, setNewPrice] = useState('');
     const [newLargePrice, setNewLargePrice] = useState('');
     const [newCategory, setNewCategory] = useState<Category>(categories[0]);
+    const [allowsCustomization, setAllowsCustomization] = useState(false);
 
     // New category form state
     const [newCatName, setNewCatName] = useState('');
@@ -58,7 +59,7 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         }
     };
 
-    const updateField = (id: string, field: keyof Product, value: string | number) => {
+    const updateField = (id: string, field: keyof Product, value: string | number | boolean) => {
         setEditProducts(prev => prev.map(p => p.id === id ? { ...p, [field]: value } : p));
         setHasChanges(true);
     };
@@ -81,7 +82,7 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
             name: newName.trim(),
             category: newCategory,
             basePrice: parseInt(newPrice),
-            allowsCustomization: false,
+            allowsCustomization: allowsCustomization,
             ...(newLargePrice ? { largePrice: parseInt(newLargePrice) } : {}),
         };
 
@@ -90,6 +91,7 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         setNewName('');
         setNewPrice('');
         setNewLargePrice('');
+        setAllowsCustomization(false);
         setShowAddForm(false);
     };
 
@@ -110,11 +112,18 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
         setNewCategory(newCatName.trim());
     };
 
-    const handleSave = () => {
-        // Filter out products with 0 price (from placeholder category creation)
-        const validProducts = editProducts.filter(p => p.basePrice > 0 || p.name !== 'Nuevo Producto');
-        onSave(validProducts.length > 0 ? validProducts : editProducts);
-        setHasChanges(false);
+    const [isSaving, setIsSaving] = useState(false);
+
+    const handleSave = async () => {
+        setIsSaving(true);
+        try {
+            // Filter out products with 0 price (from placeholder category creation)
+            const validProducts = editProducts.filter(p => p.basePrice > 0 || p.name !== 'Nuevo Producto');
+            await onSave(validProducts.length > 0 ? validProducts : editProducts);
+            setHasChanges(false);
+        } finally {
+            setIsSaving(false);
+        }
     };
 
     const handleReset = () => {
@@ -302,6 +311,15 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                                         <option key={c} value={c}>{c}</option>
                                     ))}
                                 </select>
+                                <label className="flex items-center gap-2 px-1 cursor-pointer">
+                                    <input
+                                        type="checkbox"
+                                        checked={allowsCustomization}
+                                        onChange={(e) => setAllowsCustomization(e.target.checked)}
+                                        className="rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-amber-500"
+                                    />
+                                    <span className="text-xs text-stone-400">Permitir personalización (leche, extras, etc.)</span>
+                                </label>
                                 <button
                                     onClick={handleAdd}
                                     disabled={!newName.trim() || !newPrice}
@@ -390,6 +408,15 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                                                                 className="bg-transparent border-b border-stone-700 px-1 py-1 text-sm w-16 text-amber-300 font-bold focus:outline-none focus:border-amber-500 placeholder:text-stone-700"
                                                             />
                                                         </div>
+                                                        <label className="flex items-center gap-2 cursor-pointer ml-auto">
+                                                            <input
+                                                                type="checkbox"
+                                                                checked={product.allowsCustomization}
+                                                                onChange={(e) => updateField(product.id, 'allowsCustomization', e.target.checked)}
+                                                                className="rounded border-stone-700 bg-stone-900 text-amber-500 focus:ring-amber-500"
+                                                            />
+                                                            <span className="text-[10px] text-stone-500 uppercase font-bold">Pers.</span>
+                                                        </label>
                                                     </div>
                                                 </motion.div>
                                             ))}
@@ -411,10 +438,18 @@ export const AdminPanel = ({ products, onSave, onReset, onBack }: AdminPanelProp
                 >
                     <button
                         onClick={handleSave}
-                        className="w-full max-w-2xl mx-auto bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-500 transition-colors shadow-lg shadow-green-600/20"
+                        disabled={isSaving}
+                        className="w-full max-w-2xl mx-auto bg-green-600 text-white py-3 rounded-xl font-bold flex items-center justify-center gap-2 hover:bg-green-500 transition-colors shadow-lg shadow-green-600/20 disabled:bg-stone-700 disabled:text-stone-500"
                     >
-                        <Save size={20} />
-                        Guardar Cambios
+                        {isSaving ? (
+                            <motion.div
+                                animate={{ rotate: 360 }}
+                                transition={{ repeat: Infinity, duration: 1, ease: 'linear' }}
+                            >
+                                <RotateCcw size={20} />
+                            </motion.div>
+                        ) : <Save size={20} />}
+                        {isSaving ? 'Guardando...' : 'Guardar Cambios'}
                     </button>
                 </motion.div>
             )}

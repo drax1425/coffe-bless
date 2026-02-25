@@ -1,69 +1,83 @@
 import { useState, useEffect, useCallback } from 'react';
 import type { Product } from '../types';
+import { supabase } from '../lib/supabase';
 import { products as defaultProducts } from '../data/products';
 
-const STORAGE_KEY = 'coffe-bless-products';
-const STORAGE_VERSION_KEY = 'coffe-bless-products-version';
-const CURRENT_VERSION = '3'; // Bump this when default products change
-
 /**
- * Hook que gestiona los productos. Lee desde localStorage si existen,
- * de lo contrario usa el catálogo por defecto de products.ts.
+ * Hook que gestiona los productos. Lee desde Supabase.
+ * Mantiene los defaults si la base de datos está vacía.
  */
 export function useProducts() {
-    const [products, setProducts] = useState<Product[]>(() => {
+    const [products, setProducts] = useState<Product[]>([]);
+    const [loading, setLoading] = useState(true);
+
+    const fetchProducts = useCallback(async () => {
         try {
-            const storedVersion = localStorage.getItem(STORAGE_VERSION_KEY);
-            // If version doesn't match, reset to defaults
-            if (storedVersion !== CURRENT_VERSION) {
-                localStorage.removeItem(STORAGE_KEY);
-                localStorage.setItem(STORAGE_VERSION_KEY, CURRENT_VERSION);
-                return defaultProducts;
+            setLoading(true);
+            const { data, error } = await supabase
+                .from('products')
+                .select('*')
+                .order('category', { ascending: true });
+
+            if (error) throw error;
+
+            if (data && data.length > 0) {
+                setProducts(data as Product[]);
+            } else {
+                // Si no hay datos, usar los por defecto
+                setProducts(defaultProducts);
             }
-            const stored = localStorage.getItem(STORAGE_KEY);
-            if (stored) {
-                const parsed = JSON.parse(stored);
-                if (Array.isArray(parsed) && parsed.length > 0) {
-                    return parsed;
-                }
-            }
-        } catch {
-            // Si hay error al parsear, usar defaults
+        } catch (error) {
+            console.error('Error fetching products from Supabase:', error);
+            setProducts(defaultProducts);
+        } finally {
+            setLoading(false);
         }
-        return defaultProducts;
-    });
+    }, []);
 
-    // Guardar en localStorage cuando cambian
     useEffect(() => {
-        localStorage.setItem(STORAGE_KEY, JSON.stringify(products));
-    }, [products]);
+        fetchProducts();
+    }, [fetchProducts]);
 
-    const saveProducts = useCallback((newProducts: Product[]) => {
-        setProducts(newProducts);
+    const saveProducts = useCallback(async (newProducts: Product[]) => {
+        try {
+            // En Supabase, para simplificar este flujo de "guardar todo", 
+            // primero podríamos borrar y re-insertar, o usar upsert si los IDs coinciden.
+            // Para evitar problemas de IDs, usaremos upsert.
+            const { error } = await supabase
+                .from('products')
+                .upsert(newProducts);
+
+            if (error) throw error;
+            setProducts(newProducts);
+        } catch (error) {
+            console.error('Error saving products to Supabase:', error);
+            alert('Error al guardar en la base de datos');
+        }
     }, []);
 
-    const addProduct = useCallback((product: Product) => {
-        setProducts(prev => [...prev, product]);
-    }, []);
+    const resetToDefaults = useCallback(async () => {
+        if (confirm('¿Estás seguro de que quieres restaurar los productos por defecto? Esto borrará los cambios en la base de datos.')) {
+            try {
+                // Borrar todo y re-insertar defaults
+                const { error: deleteError } = await supabase.from('products').delete().neq('id', '0');
+                if (deleteError) throw deleteError;
 
-    const updateProduct = useCallback((id: string, updates: Partial<Product>) => {
-        setProducts(prev => prev.map(p => p.id === id ? { ...p, ...updates } : p));
-    }, []);
+                const { error: insertError } = await supabase.from('products').insert(defaultProducts);
+                if (insertError) throw insertError;
 
-    const deleteProduct = useCallback((id: string) => {
-        setProducts(prev => prev.filter(p => p.id !== id));
-    }, []);
-
-    const resetToDefaults = useCallback(() => {
-        setProducts(defaultProducts);
+                setProducts(defaultProducts);
+            } catch (error) {
+                console.error('Error resetting products:', error);
+            }
+        }
     }, []);
 
     return {
         products,
+        loading,
         saveProducts,
-        addProduct,
-        updateProduct,
-        deleteProduct,
         resetToDefaults,
+        refresh: fetchProducts
     };
 }

@@ -18,7 +18,7 @@ function AppContent() {
   const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
   const [showSplash, setShowSplash] = useState(true);
   const { addToCart, clearCart } = useCart();
-  const { products, saveProducts, resetToDefaults } = useProducts();
+  const { products, saveProducts, resetToDefaults, loading } = useProducts();
 
   const handleStartCustomization = (productId: string) => {
     const product = products.find(p => p.id === productId);
