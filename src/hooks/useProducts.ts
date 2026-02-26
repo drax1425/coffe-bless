@@ -55,20 +55,6 @@ export function useProducts() {
 
     const saveProducts = useCallback(async (newProducts: Product[]) => {
         try {
-            // Encontrar productos que han sido eliminados del panel
-            const newIds = new Set(newProducts.map(p => p.id));
-
-            const idsToDelete = products.filter(p => !newIds.has(p.id)).map(p => p.id);
-
-            if (idsToDelete.length > 0) {
-                const { error: deleteError } = await supabase
-                    .from('products')
-                    .delete()
-                    .in('id', idsToDelete);
-
-                if (deleteError) throw deleteError;
-            }
-
             // Upsert products (se insertan o actualizan)
             const { error } = await supabase
                 .from('products')
@@ -80,7 +66,24 @@ export function useProducts() {
             console.error('Error saving products to Supabase:', error);
             alert('Error al guardar en la base de datos');
         }
-    }, [products]);
+    }, []);
+
+    const deleteProduct = useCallback(async (id: string) => {
+        try {
+            const { error } = await supabase
+                .from('products')
+                .delete()
+                .eq('id', id);
+
+            if (error) throw error;
+            setProducts(prev => prev.filter(p => p.id !== id));
+            return true;
+        } catch (error) {
+            console.error('Error deleting product from Supabase:', error);
+            alert('Error al eliminar el producto de la base de datos');
+            return false;
+        }
+    }, []);
 
     const saveCategory = useCallback(async (newCategory: Category) => {
         try {
@@ -155,6 +158,7 @@ export function useProducts() {
         categories,
         loading,
         saveProducts,
+        deleteProduct,
         saveCategory,
         deleteCategory,
         resetToDefaults,

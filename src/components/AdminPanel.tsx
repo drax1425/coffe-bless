@@ -10,13 +10,14 @@ interface AdminPanelProps {
     products: Product[];
     categories: Category[];
     onSave: (products: Product[]) => Promise<void>;
+    onDeleteProduct: (id: string) => Promise<boolean>;
     onSaveCategory: (category: Category) => Promise<void>;
     onDeleteCategory: (id: string) => Promise<void>;
     onReset: () => void;
     onBack: () => void;
 }
 
-export const AdminPanel = ({ products, categories, onSave, onSaveCategory, onDeleteCategory, onReset, onBack }: AdminPanelProps) => {
+export const AdminPanel = ({ products, categories, onSave, onDeleteProduct, onSaveCategory, onDeleteCategory, onReset, onBack }: AdminPanelProps) => {
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const [password, setPassword] = useState('');
     const [showPassword, setShowPassword] = useState(false);
@@ -66,9 +67,12 @@ export const AdminPanel = ({ products, categories, onSave, onSaveCategory, onDel
         setHasChanges(true);
     };
 
-    const handleDelete = (id: string) => {
-        setEditProducts(prev => prev.filter(p => p.id !== id));
-        setHasChanges(true);
+    const handleDelete = async (id: string) => {
+        if (!confirm('¿Eliminar este producto?')) return;
+        const success = await onDeleteProduct(id);
+        if (success) {
+            setEditProducts(prev => prev.filter(p => p.id !== id));
+        }
     };
 
     const handleAdd = () => {

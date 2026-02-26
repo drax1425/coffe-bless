@@ -16,7 +16,7 @@ function AppContent() {
   const [view, setView] = useState<View>('LANDING');
   const [showSplash, setShowSplash] = useState(true);
   const { clearCart } = useCart();
-  const { products, categories, saveProducts, saveCategory, deleteCategory, resetToDefaults } = useProducts();
+  const { products, categories, saveProducts, deleteProduct, saveCategory, deleteCategory, resetToDefaults } = useProducts();
 
   // Show floating WhatsApp on all views except ADMIN and SUMMARY (which has its own WA button)
   const showFloatingWA = !showSplash && view !== 'ADMIN' && view !== 'SUMMARY';
@@ -64,6 +64,7 @@ function AppContent() {
           products={products}
           categories={categories}
           onSave={saveProducts}
+          onDeleteProduct={deleteProduct}
           onSaveCategory={saveCategory}
           onDeleteCategory={deleteCategory}
           onReset={resetToDefaults}
