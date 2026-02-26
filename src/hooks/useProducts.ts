@@ -55,7 +55,21 @@ export function useProducts() {
 
     const saveProducts = useCallback(async (newProducts: Product[]) => {
         try {
-            // Upsert products (categories are managed separately or must exist)
+            // Encontrar productos que han sido eliminados del panel
+            const newIds = new Set(newProducts.map(p => p.id));
+
+            const idsToDelete = products.filter(p => !newIds.has(p.id)).map(p => p.id);
+
+            if (idsToDelete.length > 0) {
+                const { error: deleteError } = await supabase
+                    .from('products')
+                    .delete()
+                    .in('id', idsToDelete);
+
+                if (deleteError) throw deleteError;
+            }
+
+            // Upsert products (se insertan o actualizan)
             const { error } = await supabase
                 .from('products')
                 .upsert(newProducts.map(({ category, ...p }) => p)); // Remove relation object before upsert
@@ -66,7 +80,7 @@ export function useProducts() {
             console.error('Error saving products to Supabase:', error);
             alert('Error al guardar en la base de datos');
         }
-    }, []);
+    }, [products]);
 
     const saveCategory = useCallback(async (newCategory: Category) => {
         try {

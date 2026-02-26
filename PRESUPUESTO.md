@@ -1,14 +1,14 @@
-# ☕ Presupuesto — Página Web Coffee Bless
+# ☕ Presupuesto — Página Web Coffe Bless
 
 **Fecha:** 19 de Febrero 2026  
-**Preparado para:** Coffee Bless — Cafetería Móvil  
+**Preparado para:** Coffe Bless — Cafetería Móvil  
 **Ubicación:** Variante El Toyo 149, Las Vertientes, San José de Maipo
 
 ---
 
 ## 📋 Descripción del Proyecto
 
-Diseño y desarrollo completo de una página web profesional para Coffee Bless, con tecnología moderna (React), optimizada para dispositivos móviles, con menú digital interactivo, sistema de pedidos automatizado por WhatsApp, panel de administración autogestionable y experiencia gamificada para fidelización de clientes.
+Diseño y desarrollo completo de una página web profesional para Coffe Bless, con tecnología moderna (React), optimizada para dispositivos móviles, con menú digital interactivo, sistema de pedidos automatizado por WhatsApp, panel de administración autogestionable con base de datos en tiempo real (Supabase) y experiencia gamificada para fidelización de clientes.
 
 ---
 
@@ -34,10 +34,11 @@ Diseño y desarrollo completo de una página web profesional para Coffee Bless, 
 - Formato automático del pedido con detalle y totales
 - El cliente arma su pedido y lo envía con un solo click
 
-### 4. Panel de Administración
+### 4. Panel de Administración (Cloud Edition)
 - Interfaz visual para gestionar el menú completo
+- **Base de datos en la nube (Supabase):** Los cambios son permanentes y seguros.
 - Agregar, editar y eliminar productos sin programar
-- Modificar precios en tiempo real
+- Modificar precios en tiempo real con sincronización instantánea
 - Crear y organizar categorías personalizadas
 - Protección con contraseña
 
@@ -61,7 +62,7 @@ Diseño y desarrollo completo de una página web profesional para Coffee Bless, 
 | 1 | Diseño y desarrollo web profesional | $120.000 |
 | 2 | Menú digital interactivo | $60.000 |
 | 3 | Sistema de pedidos por WhatsApp | $50.000 |
-| 4 | Panel de administración autogestionable | $70.000 |
+| 4 | Panel de administración con DB Cloud | $70.000 |
 | 5 | Experiencia gamificada (mascota virtual) | $40.000 |
 | 6 | Integración redes sociales + Google Maps | $25.000 |
 | 7 | Capacitación de uso (presencial/remoto) | $15.000 |

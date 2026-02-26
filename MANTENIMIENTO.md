@@ -7,7 +7,7 @@
 3. Se abrirá la pantalla de administrador
 4. **Contraseña:** `coffebless2024`
 
-> ⚠️ Los cambios se guardan en el navegador (localStorage). Si limpias los datos del navegador, se restauran los productos originales.
+> 🛡️ **Persistencia en la Nube:** Los cambios se guardan de forma permanente y segura en **Supabase**. Esto significa que puedes editar precios desde cualquier dispositivo y los cambios se verán reflejados para todos los clientes al instante.
 
 ---
 
@@ -18,8 +18,8 @@
 3. **Editar precio:** Click en el precio y escribe el nuevo valor
 4. **Eliminar:** Click en el ícono de basurero 🗑️
 5. **Agregar:** Click en el botón ➕ arriba a la derecha, llena el formulario
-6. **Guardar:** Click en el botón verde "Guardar Cambios"
-7. **Restaurar originales:** Click en el ícono de reset 🔄
+6. **Guardar:** Click en el botón verde "Guardar Cambios". Aparecerá un indicador de carga mientras se sincroniza con la nube.
+7. **Restaurar originales:** Click en el ícono de reset 🔄 (CUIDADO: Esto reemplaza la base de datos actual con los valores por defecto).
 
 ---
 
